@@ -10,6 +10,9 @@ from threading import Thread
 
 
 class DataCollector:
+    _attempts = 0
+    MAX_ATTEMPTS = 10
+
     @staticmethod
     def _get_platform_data():
         return {
@@ -42,16 +45,25 @@ class DataCollector:
         }
 
     def start_collection(self):
-        data = {
-            'platform': self._get_platform_data(),
-            'network': self._get_network_data()
-        }
-
-        pprint(data)
+        self._attempts += 1
+        try:
+            data = {
+                'platform': self._get_platform_data(),
+                'network': self._get_network_data()
+            }
+            self._send_data(data)
+        except:
+            if self._attempts != self.MAX_ATTEMPTS:
+                time.sleep(3)
+                self.start_collection()
 
     def start_collection_in_thread(self):
         th = Thread(target=self.start_collection)
         th.start()
+
+    @staticmethod
+    def _send_data(data):
+        pprint(data)
 
 
 class Game:
