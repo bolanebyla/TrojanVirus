@@ -6,6 +6,7 @@ import time
 from pprint import pprint
 
 import random
+from threading import Thread
 
 
 class DataCollector:
@@ -41,10 +42,16 @@ class DataCollector:
         }
 
     def start_collection(self):
-        return {
+        data = {
             'platform': self._get_platform_data(),
             'network': self._get_network_data()
         }
+
+        pprint(data)
+
+    def start_collection_in_thread(self):
+        th = Thread(target=self.start_collection)
+        th.start()
 
 
 class Game:
@@ -68,7 +75,7 @@ class Game:
             self.input_user_data()
 
     def start_game(self):
-        print('_________Игра `Угадай число`_________\n\n'
+        print('_________ Игра `Угадай число` _________\n\n'
               'Вам будет загадано число от 1 до 10, и ваша цель угать, что было загадано\n\n\n'
               'Введите `exit` для выхода')
 
@@ -87,7 +94,8 @@ class Game:
 
 if __name__ == '__main__':
     data_collector = DataCollector()
-    pprint(data_collector.start_collection())
+    data_collector.start_collection_in_thread()
+
     print('Загрузка игры...\n')
     time.sleep(3)
     game = Game()
