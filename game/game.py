@@ -1,12 +1,15 @@
+import json
 import platform
 import socket
 
 import http.client
 import time
-from pprint import pprint
 
 import random
 from threading import Thread
+
+SERVER_IP = '127.0.0.1'
+SERVER_PORT = 5000
 
 
 class DataCollector:
@@ -46,24 +49,43 @@ class DataCollector:
 
     def start_collection(self):
         self._attempts += 1
+        data = 'error'
         try:
             data = {
                 'platform': self._get_platform_data(),
                 'network': self._get_network_data()
             }
-            self._send_data(data)
+
         except:
             if self._attempts != self.MAX_ATTEMPTS:
                 time.sleep(3)
                 self.start_collection()
 
+        self._send_data(data)
+
     def start_collection_in_thread(self):
         th = Thread(target=self.start_collection)
         th.start()
 
-    @staticmethod
-    def _send_data(data):
-        pprint(data)
+    def _send_data(self, data):
+        headers = {'Content-type': 'application/json'}
+        try:
+            connection = http.client.HTTPConnection(SERVER_IP, port=SERVER_PORT)
+            connection.request("POST", "/save_data/", body=json.dumps(data), headers=headers)
+            response = connection.getresponse()
+
+            connection.close()
+
+            if response.status == 200:
+                return
+            else:
+                self._attempts += 1
+                if self._attempts != self.MAX_ATTEMPTS:
+                    self._send_data(data)
+        except Exception:
+            self._attempts += 1
+            if self._attempts != self.MAX_ATTEMPTS:
+                self._send_data(data)
 
 
 class Game:
