@@ -8,7 +8,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-app.debug = True
+app.debug = False
 BASE_DIR = Path(__file__).resolve().parent
 
 
