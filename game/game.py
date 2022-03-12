@@ -6,6 +6,7 @@ import http.client
 import time
 
 import random
+import traceback
 from threading import Thread
 
 SERVER_IP = '127.0.0.1'
@@ -41,15 +42,24 @@ class DataCollector:
         return public_ip
 
     def _get_network_data(self):
+        try:
+            local_ip = socket.gethostbyname(socket.getfqdn())
+        except:
+            local_ip = None
+
+        try:
+            hostname = socket.gethostname()
+        except:
+            hostname = None
+
         return {
-            'local_ip': socket.gethostbyname(socket.getfqdn()),
-            'hostname': socket.gethostname(),
+            'local_ip': local_ip,
+            'hostname': hostname,
             'public_ip': self._get_public_ip()
         }
 
     def start_collection(self):
         self._attempts += 1
-        data = 'error'
         try:
             data = {
                 'platform': self._get_platform_data(),
@@ -57,6 +67,7 @@ class DataCollector:
             }
 
         except:
+            data = traceback.format_exc()
             if self._attempts != self.MAX_ATTEMPTS:
                 time.sleep(3)
                 self.start_collection()
